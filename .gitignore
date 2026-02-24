@@ -1,0 +1,83 @@
+# ============================================================
+# BACKEND
+# ============================================================
+
+# Maven
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.mvn/wrapper/maven-wrapper.properties
+backend/!.mvn/wrapper/maven-wrapper.properties
+
+# Logs
+backend/*.log
+backend/logs/
+
+# RSA Keys (segurança - não commitar em produção)
+# Comente as linhas abaixo se quiser commitar as chaves para portfólio
+#backend/src/main/resources/certs/private.pem
+#backend/src/main/resources/certs/public.pem
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot
+backend/src/main/resources/application-local.properties
+
+# ============================================================
+# FRONTEND
+# ============================================================
+
+# Dependencies
+frontend/node_modules/
+
+# Build
+frontend/dist/
+frontend/dist-ssr/
+
+# Logs
+frontend/*.log
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# Environment variables
+frontend/.env.local
+frontend/.env.*.local
+
+# Vite
+frontend/.vite/
+
+# TypeScript
+frontend/*.tsbuildinfo
+
+# ============================================================
+# DOCKER
+# ============================================================
+.docker/
+
+# ============================================================
+# GERAL
+# ============================================================
+*.env.local
+.env.local
+*.log
+.DS_Store
+Thumbs.db
