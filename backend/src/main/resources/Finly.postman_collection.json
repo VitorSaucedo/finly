@@ -1,0 +1,1190 @@
+{
+  "info": {
+    "name": "Finly API",
+    "description": "Personal Finance Control API - Complete test collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "account_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "account2_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category_income_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "category_expense_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transaction_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "installment_group_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "installment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "budget_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "goal_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Has access token', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.accessToken).to.be.a('string');",
+                  "  pm.expect(json.tokenType).to.equal('Bearer');",
+                  "  pm.expect(json.user.email).to.equal('john@finly.com');",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "  pm.collectionVariables.set('user_id', json.user.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@finly.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"]}
+          }
+        },
+        {
+          "name": "Register - Email already in use",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Error message is correct', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.equal('Email already in use');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@finly.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"]}
+          }
+        },
+        {
+          "name": "Register - Validation error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Has field errors', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.fields).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"not-an-email\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"]}
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has access token', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.accessToken).to.be.a('string');",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "  pm.collectionVariables.set('user_id', json.user.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@finly.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"]}
+          }
+        },
+        {
+          "name": "Login - Invalid credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Error message is correct', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.equal('Invalid email or password');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@finly.com\",\n  \"password\": \"wrong_password\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns user profile', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.email).to.equal('john@finly.com');",
+                  "  pm.expect(json.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/users/me", "host": ["{{base_url}}"], "path": ["api", "users", "me"]}
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Name was updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.equal('John Updated');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"email\": \"john@finly.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/users/me", "host": ["{{base_url}}"], "path": ["api", "users", "me"]}
+          }
+        },
+        {
+          "name": "Unauthorized - No token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{base_url}}/api/users/me", "host": ["{{base_url}}"], "path": ["api", "users", "me"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Create Checking Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Account created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.equal('Nubank');",
+                  "  pm.expect(json.type).to.equal('CHECKING');",
+                  "  pm.collectionVariables.set('account_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nubank\",\n  \"type\": \"CHECKING\",\n  \"balance\": 5000.00,\n  \"currency\": \"BRL\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/accounts", "host": ["{{base_url}}"], "path": ["api", "accounts"]}
+          }
+        },
+        {
+          "name": "Create Savings Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Savings account created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('SAVINGS');",
+                  "  pm.collectionVariables.set('account2_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Poupança\",\n  \"type\": \"SAVINGS\",\n  \"balance\": 10000.00,\n  \"currency\": \"BRL\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/accounts", "host": ["{{base_url}}"], "path": ["api", "accounts"]}
+          }
+        },
+        {
+          "name": "List All Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns list of accounts', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.be.an('array');",
+                  "  pm.expect(json.length).to.be.at.least(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/accounts", "host": ["{{base_url}}"], "path": ["api", "accounts"]}
+          }
+        },
+        {
+          "name": "Get Account by Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns correct account', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.id).to.equal(pm.collectionVariables.get('account_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/accounts/{{account_id}}", "host": ["{{base_url}}"], "path": ["api", "accounts", "{{account_id}}"]}
+          }
+        },
+        {
+          "name": "Update Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Name was updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.equal('Nubank Atualizado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nubank Atualizado\",\n  \"type\": \"CHECKING\",\n  \"balance\": 5000.00,\n  \"currency\": \"BRL\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/accounts/{{account_id}}", "host": ["{{base_url}}"], "path": ["api", "accounts", "{{account_id}}"]}
+          }
+        },
+        {
+          "name": "Get Account - Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/accounts/00000000-0000-0000-0000-000000000000", "host": ["{{base_url}}"], "path": ["api", "accounts", "00000000-0000-0000-0000-000000000000"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Create Income Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Income category created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('INCOME');",
+                  "  pm.collectionVariables.set('category_income_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Salário\",\n  \"type\": \"INCOME\",\n  \"color\": \"#22C55E\",\n  \"icon\": \"wallet\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/categories", "host": ["{{base_url}}"], "path": ["api", "categories"]}
+          }
+        },
+        {
+          "name": "Create Expense Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Expense category created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('EXPENSE');",
+                  "  pm.collectionVariables.set('category_expense_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alimentação\",\n  \"type\": \"EXPENSE\",\n  \"color\": \"#EF4444\",\n  \"icon\": \"utensils\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/categories", "host": ["{{base_url}}"], "path": ["api", "categories"]}
+          }
+        },
+        {
+          "name": "List All Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns list of categories', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/categories", "host": ["{{base_url}}"], "path": ["api", "categories"]}
+          }
+        },
+        {
+          "name": "Update Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Category was updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.equal('Alimentação e Bebidas');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alimentação e Bebidas\",\n  \"type\": \"EXPENSE\",\n  \"color\": \"#EF4444\",\n  \"icon\": \"utensils\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/categories/{{category_expense_id}}", "host": ["{{base_url}}"], "path": ["api", "categories", "{{category_expense_id}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Create Income Transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Income transaction created and balance updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('INCOME');",
+                  "  pm.expect(json.status).to.equal('COMPLETED');",
+                  "  pm.collectionVariables.set('transaction_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{account_id}}\",\n  \"categoryId\": \"{{category_income_id}}\",\n  \"description\": \"Salário Janeiro\",\n  \"amount\": 8000.00,\n  \"type\": \"INCOME\",\n  \"status\": \"COMPLETED\",\n  \"transactionDate\": \"2026-01-05\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/transactions", "host": ["{{base_url}}"], "path": ["api", "transactions"]}
+          }
+        },
+        {
+          "name": "Create Expense Transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Expense transaction created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('EXPENSE');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{account_id}}\",\n  \"categoryId\": \"{{category_expense_id}}\",\n  \"description\": \"Supermercado\",\n  \"amount\": 350.00,\n  \"type\": \"EXPENSE\",\n  \"status\": \"COMPLETED\",\n  \"transactionDate\": \"2026-01-10\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/transactions", "host": ["{{base_url}}"], "path": ["api", "transactions"]}
+          }
+        },
+        {
+          "name": "Create Transfer Between Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Transfer created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.type).to.equal('TRANSFER');",
+                  "  pm.expect(json.destinationAccountId).to.equal(pm.collectionVariables.get('account2_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{account_id}}\",\n  \"destinationAccountId\": \"{{account2_id}}\",\n  \"description\": \"Transferência para poupança\",\n  \"amount\": 1000.00,\n  \"type\": \"TRANSFER\",\n  \"status\": \"COMPLETED\",\n  \"transactionDate\": \"2026-01-15\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/transactions", "host": ["{{base_url}}"], "path": ["api", "transactions"]}
+          }
+        },
+        {
+          "name": "Create Transfer - Same Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Error message is correct', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.equal('Source and destination accounts must be different');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{account_id}}\",\n  \"destinationAccountId\": \"{{account_id}}\",\n  \"description\": \"Transferência inválida\",\n  \"amount\": 100.00,\n  \"type\": \"TRANSFER\",\n  \"status\": \"COMPLETED\",\n  \"transactionDate\": \"2026-01-15\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/transactions", "host": ["{{base_url}}"], "path": ["api", "transactions"]}
+          }
+        },
+        {
+          "name": "List All Transactions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns paginated transactions', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "  pm.expect(json.totalElements).to.be.at.least(3);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/transactions?page=0&size=10&sort=transactionDate,desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions"],
+              "query": [
+                {"key": "page", "value": "0"},
+                {"key": "size", "value": "10"},
+                {"key": "sort", "value": "transactionDate,desc"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction by Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns correct transaction', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.id).to.equal(pm.collectionVariables.get('transaction_id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/transactions/{{transaction_id}}", "host": ["{{base_url}}"], "path": ["api", "transactions", "{{transaction_id}}"]}
+          }
+        },
+        {
+          "name": "Delete Transaction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/transactions/{{transaction_id}}", "host": ["{{base_url}}"], "path": ["api", "transactions", "{{transaction_id}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Installments",
+      "item": [
+        {
+          "name": "Create Installment Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Installment group created with correct parcels', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.installmentCount).to.equal(6);",
+                  "  pm.expect(json.installments.length).to.equal(6);",
+                  "  pm.expect(json.paidCount).to.equal(0);",
+                  "  pm.collectionVariables.set('installment_group_id', json.id);",
+                  "  pm.collectionVariables.set('installment_id', json.installments[0].id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountId\": \"{{account_id}}\",\n  \"categoryId\": \"{{category_expense_id}}\",\n  \"description\": \"Notebook Dell\",\n  \"totalAmount\": 6000.00,\n  \"installmentCount\": 6,\n  \"startDate\": \"2026-02-01\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/installments", "host": ["{{base_url}}"], "path": ["api", "installments"]}
+          }
+        },
+        {
+          "name": "List Installment Groups",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns paginated installment groups', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.content).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/installments?page=0&size=10", "host": ["{{base_url}}"], "path": ["api", "installments"], "query": [{"key": "page", "value": "0"}, {"key": "size", "value": "10"}]}
+          }
+        },
+        {
+          "name": "Pay Installment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Installment paid', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal('COMPLETED');",
+                  "  pm.expect(json.transactionId).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/installments/{{installment_id}}/pay", "host": ["{{base_url}}"], "path": ["api", "installments", "{{installment_id}}", "pay"]}
+          }
+        },
+        {
+          "name": "Cancel Installment Group",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/installments/{{installment_group_id}}/cancel", "host": ["{{base_url}}"], "path": ["api", "installments", "{{installment_group_id}}", "cancel"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Budgets",
+      "item": [
+        {
+          "name": "Create Budget",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Budget created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.amount).to.equal(1500);",
+                  "  pm.expect(json.spent).to.equal(0);",
+                  "  pm.expect(json.status).to.equal('ACTIVE');",
+                  "  pm.collectionVariables.set('budget_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{category_expense_id}}\",\n  \"amount\": 1500.00,\n  \"month\": 2,\n  \"year\": 2026\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/budgets", "host": ["{{base_url}}"], "path": ["api", "budgets"]}
+          }
+        },
+        {
+          "name": "Create Budget - Duplicate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Error is duplicate budget', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.equal('Budget already exists for this category and period');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{category_expense_id}}\",\n  \"amount\": 1500.00,\n  \"month\": 2,\n  \"year\": 2026\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/budgets", "host": ["{{base_url}}"], "path": ["api", "budgets"]}
+          }
+        },
+        {
+          "name": "List Budgets by Month",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns budget list', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/budgets?month=2&year=2026",
+              "host": ["{{base_url}}"],
+              "path": ["api", "budgets"],
+              "query": [{"key": "month", "value": "2"}, {"key": "year", "value": "2026"}]
+            }
+          }
+        },
+        {
+          "name": "Update Budget",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Budget amount updated', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.amount).to.equal(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryId\": \"{{category_expense_id}}\",\n  \"amount\": 2000.00,\n  \"month\": 2,\n  \"year\": 2026\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/budgets/{{budget_id}}", "host": ["{{base_url}}"], "path": ["api", "budgets", "{{budget_id}}"]}
+          }
+        },
+        {
+          "name": "Delete Budget",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/budgets/{{budget_id}}", "host": ["{{base_url}}"], "path": ["api", "budgets", "{{budget_id}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goals",
+      "item": [
+        {
+          "name": "Create Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Goal created', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.name).to.equal('Reserva de emergência');",
+                  "  pm.expect(json.status).to.equal('IN_PROGRESS');",
+                  "  pm.expect(json.percentageCompleted).to.equal(10);",
+                  "  pm.collectionVariables.set('goal_id', json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Reserva de emergência\",\n  \"targetAmount\": 10000.00,\n  \"currentAmount\": 1000.00,\n  \"deadline\": \"2026-12-31\"\n}"
+            },
+            "url": {"raw": "{{base_url}}/api/goals", "host": ["{{base_url}}"], "path": ["api", "goals"]}
+          }
+        },
+        {
+          "name": "List Goals",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns goals list', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/goals", "host": ["{{base_url}}"], "path": ["api", "goals"]}
+          }
+        },
+        {
+          "name": "Deposit to Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Amount added to goal', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.currentAmount).to.equal(2000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/goals/{{goal_id}}/deposit?amount=1000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "goals", "{{goal_id}}", "deposit"],
+              "query": [{"key": "amount", "value": "1000"}]
+            }
+          }
+        },
+        {
+          "name": "Deposit to Goal - Complete it",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Goal completed', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.status).to.equal('COMPLETED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/goals/{{goal_id}}/deposit?amount=8000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "goals", "{{goal_id}}", "deposit"],
+              "query": [{"key": "amount", "value": "8000"}]
+            }
+          }
+        },
+        {
+          "name": "Deposit to Goal - Already completed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "pm.test('Error message is correct', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.message).to.equal('Only in-progress goals can receive deposits');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/goals/{{goal_id}}/deposit?amount=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "goals", "{{goal_id}}", "deposit"],
+              "query": [{"key": "amount", "value": "100"}]
+            }
+          }
+        },
+        {
+          "name": "Delete Goal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/goals/{{goal_id}}", "host": ["{{base_url}}"], "path": ["api", "goals", "{{goal_id}}"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Dashboard has all fields', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.totalBalance).to.be.a('number');",
+                  "  pm.expect(json.totalIncome).to.be.a('number');",
+                  "  pm.expect(json.totalExpenses).to.be.a('number');",
+                  "  pm.expect(json.netBalance).to.be.a('number');",
+                  "  pm.expect(json.accounts).to.be.an('array');",
+                  "  pm.expect(json.budgets).to.be.an('array');",
+                  "  pm.expect(json.goals).to.be.an('array');",
+                  "  pm.expect(json.recentTransactions).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {"raw": "{{base_url}}/api/dashboard", "host": ["{{base_url}}"], "path": ["api", "dashboard"]}
+          }
+        }
+      ]
+    }
+  ]
+}
