@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "app.rsa.public-key-location",
+      "type": "org.springframework.core.io.Resource",
+      "description": "Location of the RSA public key used to verify JWT tokens."
+    },
+    {
+      "name": "app.rsa.private-key-location",
+      "type": "org.springframework.core.io.Resource",
+      "description": "Location of the RSA private key used to sign JWT tokens."
+    },
+    {
+      "name": "app.jwt.expiration-seconds",
+      "type": "java.lang.Long",
+      "description": "JWT token expiration time in seconds."
+    }
+  ]
+}
