@@ -37,9 +37,8 @@ public class RsaKeyConfig {
 
     public PublicKey publicKey() {
         try {
-            String raw = resolveKeyString(publicKeyLocation, publicKey);
-            byte[] decoded = Base64.getDecoder().decode(stripPemHeaders(raw));
-            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(decoded));
+            byte[] der = resolveKeyBytes(publicKeyLocation, publicKey);
+            return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(der));
         } catch (Exception e) {
             throw new IllegalStateException("Falha ao carregar RSA public key", e);
         }
@@ -47,25 +46,26 @@ public class RsaKeyConfig {
 
     public PrivateKey privateKey() {
         try {
-            String raw = resolveKeyString(privateKeyLocation, privateKey);
-            byte[] decoded = Base64.getDecoder().decode(stripPemHeaders(raw));
-            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(decoded));
+            byte[] der = resolveKeyBytes(privateKeyLocation, privateKey);
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(der));
         } catch (Exception e) {
             throw new IllegalStateException("Falha ao carregar RSA private key", e);
         }
     }
 
-    private String resolveKeyString(Resource location, String fallbackString) throws Exception {
+    private byte[] resolveKeyBytes(Resource location, String base64String) throws Exception {
         if (location != null) {
-            return new String(location.getInputStream().readAllBytes());
+            String pem = new String(location.getInputStream().readAllBytes());
+            return Base64.getDecoder().decode(stripPemHeaders(pem));
         }
-        if (fallbackString != null && !fallbackString.isBlank()) {
-            return fallbackString;
+        if (base64String != null && !base64String.isBlank()) {
+            String pem = new String(Base64.getDecoder().decode(base64String.trim()));
+            return Base64.getDecoder().decode(stripPemHeaders(pem));
         }
         throw new IllegalStateException("Nenhuma chave RSA configurada (nem location nem string base64)");
     }
 
-    private String stripPemHeaders(String key) {
-        return key.replaceAll("-----.*?-----", "").replaceAll("\\s", "");
+    private String stripPemHeaders(String pem) {
+        return pem.replaceAll("-----.*?-----", "").replaceAll("\\s", "");
     }
 }
