@@ -1,7 +1,14 @@
 import axios from "axios";
 
+// Em dev: VITE_API_URL não está definido → baseURL fica vazio → o proxy do Vite
+//         intercepta as chamadas para /api e repassa para http://localhost:8080.
+//
+// Em prod: VITE_API_URL é definido como env var no Render antes do build,
+//          ex: https://finly-backend.onrender.com
+//          O axios chama o backend diretamente pela URL completa.
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL ?? "",
   headers: {
     "Content-Type": "application/json",
   },

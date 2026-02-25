@@ -11,8 +11,8 @@ Aplicação de controle financeiro pessoal desenvolvida com **Spring Boot** e **
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Como Executar](#como-executar)
   - [Pré-requisitos](#pré-requisitos)
-  - [Desenvolvimento](#desenvolvimento)
-  - [Produção (Docker)](#produção-docker)
+  - [Desenvolvimento sem Docker](#desenvolvimento-sem-docker)
+  - [Desenvolvimento com Docker Compose](#desenvolvimento-com-docker-compose)
 - [Backend](#backend)
   - [Arquitetura](#arquitetura)
   - [Endpoints da API](#endpoints-da-api)
@@ -23,6 +23,7 @@ Aplicação de controle financeiro pessoal desenvolvida com **Spring Boot** e **
   - [Arquitetura](#arquitetura-1)
   - [Páginas](#páginas)
   - [Variáveis de Ambiente](#variáveis-de-ambiente-1)
+- [Deploy (Render + NeonDB)](#deploy-render--neondb)
 - [Testes](#testes)
 
 ---
@@ -59,7 +60,7 @@ Aplicação de controle financeiro pessoal desenvolvida com **Spring Boot** e **
 |---|---|
 | React | 19 |
 | TypeScript | 5 |
-| Vite | 6 |
+| Vite | 7 |
 | Tailwind CSS | 4 |
 | Redux Toolkit | Latest |
 | React Router | 7 |
@@ -74,13 +75,13 @@ Aplicação de controle financeiro pessoal desenvolvida com **Spring Boot** e **
 
 ```
 finly/
-├── compose.yaml              # Docker Compose de produção
+├── compose.yaml              # Docker Compose (dev e produção local)
 ├── backend/
 │   ├── Dockerfile
 │   └── src/
 │       └── main/
 │           ├── java/com/vitorsaucedo/finly/
-│           │   ├── config/           # Security, CORS, OpenAPI
+│           │   ├── config/           # Security, CORS, RSA, OpenAPI
 │           │   ├── domain/           # Entidades e Repositórios
 │           │   │   ├── user/
 │           │   │   ├── account/
@@ -93,20 +94,16 @@ finly/
 │           │   ├── dto/
 │           │   │   ├── request/
 │           │   │   └── response/
-│           │   ├── exception/        # Tratamento global de exceções
-│           │   ├── security/         # JWT, Auth controller/service
-│           │   └── util/
+│           │   └── exception/        # Tratamento global de exceções
 │           └── resources/
 │               ├── db/migration/     # Migrações Flyway (V1-V7)
-│               ├── certs/            # Par de chaves RSA
+│               ├── certs/            # Par de chaves RSA (não versionado)
 │               ├── application.properties
 │               ├── application-dev.properties
 │               └── application-prod.properties
 └── frontend/
     ├── Dockerfile
     ├── nginx.conf
-    ├── .env
-    ├── .env.production
     └── src/
         ├── components/
         │   ├── charts/
@@ -141,7 +138,11 @@ finly/
 - Docker e Docker Compose
 - Maven 3.9+
 
-### Desenvolvimento
+---
+
+### Desenvolvimento sem Docker
+
+Neste modo o Vite faz proxy das chamadas `/api` para o backend automaticamente — não é necessário definir nenhuma variável de ambiente.
 
 #### 1. Clone o repositório
 
@@ -150,7 +151,7 @@ git clone https://github.com/vitorsaucedo/finly.git
 cd finly
 ```
 
-#### 2. Gere as chaves RSA (Backend)
+#### 2. Gere as chaves RSA
 
 ```bash
 cd backend/src/main/resources/certs
@@ -158,20 +159,24 @@ openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -pubout -out public.pem
 ```
 
-#### 3. Execute o Backend
+#### 3. Suba o banco de dados
 
-O backend usa o **Spring Boot Docker Compose Support** — ele inicia o PostgreSQL automaticamente via Docker quando a aplicação é executada.
+```bash
+# Na raiz do projeto
+docker compose up postgres -d
+```
+
+#### 4. Execute o backend
 
 ```bash
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-A API estará disponível em `http://localhost:8080`.
-
+A API estará disponível em `http://localhost:8080`.  
 Swagger UI: `http://localhost:8080/swagger-ui.html`
 
-#### 4. Execute o Frontend
+#### 5. Execute o frontend
 
 ```bash
 cd frontend
@@ -183,13 +188,16 @@ O frontend estará disponível em `http://localhost:5173`.
 
 ---
 
-### Produção (Docker)
+### Desenvolvimento com Docker Compose
 
-Suba toda a stack com um único comando a partir da raiz do projeto:
+Sobe toda a stack (banco, backend e frontend com nginx) com um único comando:
 
 ```bash
+# Na raiz do projeto — gere as chaves RSA antes se ainda não tiver feito
 docker compose up --build
 ```
+
+> ⚠️ As chaves RSA em `backend/src/main/resources/certs/` precisam existir antes do build. Gere-as conforme o passo 2 acima.
 
 | Serviço | URL |
 |---|---|
@@ -197,15 +205,11 @@ docker compose up --build
 | API Backend | http://localhost:8080 |
 | PostgreSQL | localhost:5432 |
 
-Para parar todos os serviços:
-
 ```bash
+# Parar todos os serviços
 docker compose down
-```
 
-Para rebuildar sem cache:
-
-```bash
+# Rebuildar sem cache
 docker compose build --no-cache && docker compose up
 ```
 
@@ -289,12 +293,18 @@ Os tokens expiram após **24 horas** (configurável via `app.jwt.expiration-seco
 
 ### Variáveis de Ambiente
 
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `SPRING_PROFILES_ACTIVE` | Perfil ativo (`dev` ou `prod`) | `dev` |
-| `SPRING_DATASOURCE_URL` | URL JDBC do PostgreSQL | `jdbc:postgresql://localhost:5432/finly` |
-| `SPRING_DATASOURCE_USERNAME` | Usuário do banco | `finly` |
-| `SPRING_DATASOURCE_PASSWORD` | Senha do banco | `finly` |
+Usadas apenas no perfil `prod` (deploy). Em desenvolvimento, os valores são lidos dos arquivos locais.
+
+| Variável | Descrição |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | Perfil ativo — usar `prod` no deploy |
+| `DB_URL` | URL JDBC do PostgreSQL com SSL, ex: `jdbc:postgresql://<host>.neon.tech:5432/<db>?sslmode=require` |
+| `DB_USERNAME` | Usuário do banco |
+| `DB_PASSWORD` | Senha do banco |
+| `RSA_PUBLIC_KEY` | Conteúdo do `public.pem` codificado em base64 |
+| `RSA_PRIVATE_KEY` | Conteúdo do `private.pem` codificado em base64 |
+| `CORS_ALLOWED_ORIGINS` | URL do frontend em produção, ex: `https://finly.onrender.com` |
+| `JWT_EXPIRATION_SECONDS` | Tempo de expiração do token em segundos (padrão: `86400`) |
 
 ---
 
@@ -310,7 +320,9 @@ O frontend segue uma **arquitetura em camadas**:
 - **`pages/`** — componentes de página que compõem hooks e componentes de UI
 - **`components/ui/`** — componentes reutilizáveis do design system
 
-A instância do Axios anexa automaticamente o token JWT em todas as requisições via interceptor, e redireciona para `/login` em respostas 401.
+A instância do Axios anexa automaticamente o token JWT em todas as requisições via interceptor e redireciona para `/login` em respostas 401.
+
+Em desenvolvimento, o `baseURL` do Axios fica vazio e o proxy do Vite encaminha as chamadas `/api` para `http://localhost:8080`. Em produção, o `baseURL` é preenchido pela variável `VITE_API_URL` embutida no bundle no momento do build.
 
 ### Páginas
 
@@ -331,7 +343,7 @@ A instância do Axios anexa automaticamente o token JWT em todas as requisiçõe
 
 | Variável | Descrição |
 |---|---|
-| `VITE_API_URL` | URL base da API backend (somente desenvolvimento) |
+| `VITE_API_URL` | URL base da API em produção, ex: `https://finly-backend.onrender.com`. Não definir em desenvolvimento. |
 
 ---
 
